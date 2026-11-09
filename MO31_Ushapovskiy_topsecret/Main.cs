@@ -1,23 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+using MO31_Ushapovskiy_topsecret.NeuroNet;
 
 namespace MO31_Ushapovskiy_topsecret
 {
     public partial class Main : Form
     {
         private double[] inputPixels;
+        private Network network;
         public Main()
         {
             InitializeComponent();
             inputPixels = new double[15];
+            network = new Network();
             foreach (Control c in this.Controls)
             {
                 if (c is Button && c.TabIndex < 15)
@@ -50,6 +48,13 @@ namespace MO31_Ushapovskiy_topsecret
             }
             tmpStr += '\n';
             File.AppendAllText(path, tmpStr);
+        }
+
+        private void button_recognize_Click(object sender, EventArgs e)
+        {
+            network.ForwardPass(inputPixels);
+            label_Output.Text = network.Fact.ToList().IndexOf(network.Fact.Max()).ToString();
+            label_Probability.Text = (100 * network.Fact.Max()).ToString("0.00") + "%";
         }
     }
 }

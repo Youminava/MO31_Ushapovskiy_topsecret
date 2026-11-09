@@ -39,7 +39,7 @@ namespace MO31_Ushapovskiy_topsecret.NeuroNet
             name_Layer = nm_Layer;
 
             pathDirWeights = AppDomain.CurrentDomain.BaseDirectory + "memory\\";
-            pathFileWeights = pathDirWeights + name_Layer + "_memory_csv";
+            pathFileWeights = pathDirWeights + name_Layer + "_memory.csv";
 
             lastdelaweights = new double[non, nopn + 1];
             double[,] Weights;
@@ -57,7 +57,7 @@ namespace MO31_Ushapovskiy_topsecret.NeuroNet
             for (int i = 0; i < non; i++)
             {
                 double[] tmp_weights = new double[nopn + 1];
-                for (int j = 0; j < nopn - 1; j++)
+                for (int j = 0; j < nopn + 1; j++)
                 {
                     tmp_weights[j] = Weights[i, j];
                 }
@@ -109,22 +109,31 @@ namespace MO31_Ushapovskiy_topsecret.NeuroNet
 
                 case MemoryMode.INIT:
                     MessageBox.Show("! ! ! ВНИМАНИЕ ! ! ! \nФайл " + name_Layer + "_memory.csv синаптических весов" +
-                            "\n НЕ НАЙДЕН!!!\nПосле нажатия кнопки ОК автоматически создатся отсутствующий файл, и все значения будут сохранены в нём",
-                            "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        "\nНЕ НАЙДЕН!!!\nПосле нажатия кнопки ОК автоматически создастся отсутствующий файл, и все значения будут сохранены в нём",
+                        "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+
                     Random random = new Random();
-                    double tmpRatio;
-                    double tmpShift;
-                    double[] tmpArr = new double[numofneurons + 1];
+                    double tmpRatio = Math.Sqrt(12.0 / numofprevneurons); // ширина интервала
+                    double tmpShift = tmpRatio / 2.0;                      // сдвиг к нулю
                     tmpStrWeights = new string[numofneurons];
+
                     for (int i = 0; i < numofneurons; i++)
                     {
-                        for (int j = 0; j < numofprevneurons + 1; j++)
-                            tmpArr[j] = random.NextDouble();
+                        for (int j = 0; j < numofprevneurons + 1; j++)     // j = 0 — порог
+                            weights[i, j] = random.NextDouble() * tmpRatio - tmpShift;
+
+                        tmpStr = weights[i, 0].ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        for (int j = 1; j < numofprevneurons + 1; j++)
+                            tmpStr += delim[0] + weights[i, j].ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        tmpStrWeights[i] = tmpStr;
                     }
+                    File.WriteAllLines(path, tmpStrWeights);
                     break;
                 default: break;
             }
-            return new double[1, 1];
+            return weights;
         }
+        abstract public void Recognize(Network net, Layer nextLayer); // 
+        abstract public double[] BackwardPass(double[] stuff); // 
     }
 }
