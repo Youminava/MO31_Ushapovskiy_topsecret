@@ -26,31 +26,28 @@ namespace MO31_Ushapovskiy_topsecret.NeuroNet
 
         public override double[] BackwardPass(double[] errors)
         {
-            // errors[k] = Fact[k] - Target[k]
             double[] gr_sum = new double[numofprevneurons];
 
-            // 1. Градиент для предыдущего слоя (считаем ДО обновления весов)
-            for (int j = 0; j < numofprevneurons; ++j)
+            for (int j = 0; j < numofprevneurons; j++)
             {
                 double sum = 0;
-                for (int k = 0; k < numofneurons; ++k)
+                for (int k = 0; k < numofprevneurons; k++)
                     sum += neurons[k].Weights[j + 1] * errors[k];
                 gr_sum[j] = sum;
             }
 
-            // 2. Коррекция весов с моментом
-            for (int i = 0; i < numofneurons; ++i)
-            {
-                for (int n = 0; n < numofprevneurons + 1; ++n)
+            for (int i = 0; i < numofneurons; i++) 
+                for(int n = 0; n < numofprevneurons; n++)
                 {
-                    double input = (n == 0) ? 1.0 : neurons[i].Inputs[n - 1]; // n == 0 — порог
-                    double deltaw = momentum * lastdelaweights[i, n]
-                                  - learningrate * input * errors[i];
-
+                    double deltaw;
+                    if (n == 0)
+                        deltaw = learningrate * errors[i];
+                    else
+                        deltaw = lastdelaweights[i, n] + 
+                            learningrate * neurons[i].Inputs[n - 1] * errors[i];
                     lastdelaweights[i, n] = deltaw;
-                    neurons[i].Weights[n] += deltaw;
-                }
-            }
+                    neurons[i].Weights[n] += deltaw; // 
+                }   
 
             return gr_sum;
         }
